@@ -89,12 +89,12 @@ fn variant_tag_id(d: ebml::doc) -> ast::def_id {
     ret parse_def_id(ebml::doc_data(tagdoc));
 }
 
-fn variant_disr_val(d: ebml::doc) -> option::t<int> {
+fn variant_disr_val(d: ebml::doc) -> option::t<i32> {
     alt ebml::maybe_get_doc(d, tag_disr_val) {
       some(val_doc) {
         let val_buf = ebml::doc_data(val_doc);
         let val = int::parse_buf(val_buf, 10u);
-        ret some(val);
+        ret some(val as i32);
       }
       _ { ret none;}
     }
@@ -242,7 +242,7 @@ fn get_tag_variants(cdata: cmd, id: ast::node_id, tcx: ty::ctxt)
     let item = find_item(id, items);
     let infos: [ty::variant_info] = [];
     let variant_ids = tag_variant_ids(item, cdata);
-    let disr_val = 0;
+    let disr_val = 0_i32;
     for did: ast::def_id in variant_ids {
         let item = find_item(did.node, items);
         let ctor_ty = item_type(item, tcx, cdata);
@@ -260,7 +260,7 @@ fn get_tag_variants(cdata: cmd, id: ast::node_id, tcx: ty::ctxt)
         }
         infos += [@{args: arg_tys, ctor_ty: ctor_ty, name: name,
                     id: did, disr_val: disr_val}];
-        disr_val += 1;
+        disr_val += 1_i32;
     }
     ret infos;
 }

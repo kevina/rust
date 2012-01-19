@@ -701,8 +701,8 @@ fn T_opaque_cbox_ptr(cx: @crate_ctxt) -> TypeRef {
     ret t;
 }
 
-fn T_tag_variant(cx: @crate_ctxt) -> TypeRef {
-    ret cx.int_type;
+fn T_tag_variant(_cx: @crate_ctxt) -> TypeRef {
+    ret T_i32();
 }
 
 fn T_tag(cx: @crate_ctxt, size: uint) -> TypeRef {

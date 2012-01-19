@@ -19,7 +19,7 @@ import trans_common::*;
 // An option identifying a branch (either a literal, a tag variant or a range)
 tag opt {
     lit(@ast::expr);
-    var(/* disr val */int, /* variant dids */{tg: def_id, var: def_id});
+    var(/* disr val */i32, /* variant dids */{tg: def_id, var: def_id});
     range(@ast::expr, @ast::expr);
 }
 fn opt_eq(a: opt, b: opt) -> bool {
@@ -56,7 +56,9 @@ fn trans_opt(bcx: @block_ctxt, o: opt) -> opt_result {
           }
         }
       }
-      var(disr_val, _) { ret single_result(rslt(bcx, C_int(ccx, disr_val))); }
+      var(disr_val, _) {
+        ret single_result(rslt(bcx, C_i32(disr_val)));
+      }
       range(l1, l2) {
         ret range_result(rslt(bcx, trans::trans_const_expr(ccx, l1)),
                          rslt(bcx, trans::trans_const_expr(ccx, l2)));

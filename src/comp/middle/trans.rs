@@ -1684,7 +1684,7 @@ fn iter_structural_ty(cx: @block_ctxt, av: ValueRef, t: ty::t,
 
         // NB: we must hit the discriminant first so that structural
         // comparison know not to proceed when the discriminants differ.
-        cx = f(cx, lldiscrim_a_ptr, ty::mk_int(bcx_tcx(cx)));
+        cx = f(cx, lldiscrim_a_ptr, ty::mk_mach_int(bcx_tcx(cx),ast::ty_i32));
         let unr_cx = new_sub_block_ctxt(cx, "tag-iter-unr");
         Unreachable(unr_cx);
         let llswitch = Switch(cx, lldiscrim_a, unr_cx.llbb, n_variants);
@@ -1693,8 +1693,10 @@ fn iter_structural_ty(cx: @block_ctxt, av: ValueRef, t: ty::t,
             let variant_cx =
                 new_sub_block_ctxt(cx,
                                    "tag-iter-variant-" +
-                                       int::to_str(variant.disr_val, 10u));
-            AddCase(llswitch, C_int(ccx, variant.disr_val), variant_cx.llbb);
+                                       int::to_str(variant.disr_val as int,
+                                                   10u));
+            AddCase(llswitch, C_i32(variant.disr_val),
+                    variant_cx.llbb);
             variant_cx =
                 iter_variant(variant_cx, llunion_a_ptr, variant, tps, tid, f);
             Br(variant_cx, next_cx.llbb);
@@ -2612,7 +2614,7 @@ fn lookup_discriminant(lcx: @local_ctxt, vid: ast::def_id) -> ValueRef {
         let gvar =
             str::as_buf(sym,
                         {|buf|
-                            llvm::LLVMAddGlobal(ccx.llmod, ccx.int_type, buf)
+                            llvm::LLVMAddGlobal(ccx.llmod, T_i32(), buf)
                         });
         llvm::LLVMSetLinkage(gvar,
                              lib::llvm::LLVMExternalLinkage as llvm::Linkage);
@@ -4542,7 +4544,7 @@ fn trans_res_ctor(cx: @local_ctxt, sp: span, dtor: ast::fn_decl,
 
 
 fn trans_tag_variant(cx: @local_ctxt, tag_id: ast::node_id,
-                     variant: ast::variant, disr: int, is_degen: bool,
+                     variant: ast::variant, disr: i32, is_degen: bool,
                      ty_params: [ast::ty_param]) {
     let ccx = cx.ccx;
 
@@ -4592,7 +4594,7 @@ fn trans_tag_variant(cx: @local_ctxt, tag_id: ast::node_id,
             let lltagptr =
                 PointerCast(bcx, fcx.llretptr, T_opaque_tag_ptr(ccx));
             let lldiscrimptr = GEPi(bcx, lltagptr, [0, 0]);
-            Store(bcx, C_int(ccx, disr), lldiscrimptr);
+            Store(bcx, C_i32(disr), lldiscrimptr);
             GEPi(bcx, lltagptr, [0, 1])
         };
     i = 0u;
@@ -5282,9 +5284,9 @@ fn trans_constant(ccx: @crate_ctxt, it: @ast::item, &&pt: [str],
             let s = mangle_exported_name(ccx, p, ty::mk_int(ccx.tcx));
             let disr_val = vi[i].disr_val;
             let discrim_gvar = str::as_buf(s, {|buf|
-                llvm::LLVMAddGlobal(ccx.llmod, ccx.int_type, buf)
+                llvm::LLVMAddGlobal(ccx.llmod, T_i32(), buf)
             });
-            llvm::LLVMSetInitializer(discrim_gvar, C_int(ccx, disr_val));
+            llvm::LLVMSetInitializer(discrim_gvar, C_i32(disr_val));
             llvm::LLVMSetGlobalConstant(discrim_gvar, True);
             ccx.discrims.insert(
                 ast_util::local_def(variant.node.id), discrim_gvar);

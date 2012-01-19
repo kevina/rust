@@ -2493,6 +2493,8 @@ fn check_tag_variants(ccx: @crate_ctxt, _sp: span, vs: [ast::variant],
             // we may still get an internal compiler error.
             alt syntax::ast_util::eval_const_expr(e) {
               syntax::ast_util::const_int(val) {
+                // FIXME: Make sure val will fit in an i32 type as
+                // that is how they are represented internally
                 disr_val = val as int;
               }
               _ {

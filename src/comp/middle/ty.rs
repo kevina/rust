@@ -2634,7 +2634,7 @@ fn impl_iface(cx: ctxt, id: ast::def_id) -> option::t<t> {
 
 // Tag information
 type variant_info = @{args: [ty::t], ctor_ty: ty::t, name: str,
-                      id: ast::def_id, disr_val: int};
+                      id: ast::def_id, disr_val: i32};
 
 fn tag_variants(cx: ctxt, id: ast::def_id) -> @[variant_info] {
     alt cx.tag_var_cache.find(id) {
@@ -2649,7 +2649,7 @@ fn tag_variants(cx: ctxt, id: ast::def_id) -> @[variant_info] {
         // moved there to avoid having to call eval_const_expr twice.
         alt cx.items.get(id.node) {
           ast_map::node_item(@{node: ast::item_tag(variants, _), _}) {
-            let disr_val = -1;
+            let disr_val = -1_i32;
             @vec::map(variants, {|variant|
                 let ctor_ty = node_id_to_monotype(cx, variant.node.id);
                 let arg_tys = if vec::len(variant.node.args) > 0u {
@@ -2659,10 +2659,10 @@ fn tag_variants(cx: ctxt, id: ast::def_id) -> @[variant_info] {
                   some (ex) {
                     // FIXME: issue #1417
                     disr_val = alt syntax::ast_util::eval_const_expr(ex) {
-                      ast_util::const_int(val) {val as int}
+                      ast_util::const_int(val) {val as i32}
                     }
                   }
-                  _ {disr_val += 1;}
+                  _ {disr_val += 1_i32;}
                 }
                 @{args: arg_tys,
                   ctor_ty: ctor_ty,
