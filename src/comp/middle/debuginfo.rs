@@ -219,16 +219,16 @@ fn create_file(cx: @crate_ctxt, full_path: str) -> @metadata<file_md> {
 }
 
 fn line_from_span(cm: codemap::codemap, sp: codemap::span) -> uint {
-    codemap::lookup_char_pos(cm, sp.lo).line
+    codemap::lookup_pos(cm, sp.lo_xxx).line
 }
 
 fn create_block(cx: @block_ctxt) -> @metadata<block_md> {
     let cache = get_cache(bcx_ccx(cx));
-    let start = codemap::lookup_char_pos(bcx_ccx(cx).sess.codemap,
-                                         cx.sp.lo);
+    let start = codemap::lookup_pos(bcx_ccx(cx).sess.codemap,
+                                    cx.sp.lo_xxx);
     let fname = start.filename;
-    let end = codemap::lookup_char_pos(bcx_ccx(cx).sess.codemap,
-                                       cx.sp.hi);
+    let end = codemap::lookup_pos(bcx_ccx(cx).sess.codemap,
+                                       cx.sp.hi_xxx);
     let tg = LexicalBlockTag;
     alt cached_metadata::<@metadata<block_md>>(
         cache, tg,
@@ -603,7 +603,7 @@ fn create_ty(cx: @crate_ctxt, t: ty::t, ty: @ast::ty)
 }
 
 fn filename_from_span(cx: @crate_ctxt, sp: codemap::span) -> str {
-    codemap::lookup_char_pos(cx.sess.codemap, sp.lo).filename
+    codemap::lookup_pos(cx.sess.codemap, sp.lo_xxx).filename
 }
 
 fn create_var(type_tag: int, context: ValueRef, name: str, file: ValueRef,
@@ -634,8 +634,8 @@ fn create_local_var(bcx: @block_ctxt, local: @ast::local)
                                            local.node.pat).node {
       ast::pat_ident(ident, _) { ident /*XXX deal w/ optional node binding*/ }
      });
-    let loc = codemap::lookup_char_pos(cx.sess.codemap,
-                                       local.span.lo);
+    let loc = codemap::lookup_pos(cx.sess.codemap,
+                                       local.span.lo_xxx);
     let ty = trans::node_id_type(cx, local.node.id);
     let tymd = create_ty(cx, ty, local.node.ty);
     let filemd = create_file(cx, loc.filename);
@@ -677,8 +677,8 @@ fn create_arg(bcx: @block_ctxt, arg: ast::arg)
     /*let arg_n = alt cx.ast_map.get(arg.id) {
       ast_map::node_arg(_, n) { n - 2u }
     };*/
-    let loc = codemap::lookup_char_pos(cx.sess.codemap,
-                                       fcx.sp.lo);
+    let loc = codemap::lookup_pos(cx.sess.codemap,
+                                  fcx.sp.lo_xxx);
     let ty = trans::node_id_type(cx, arg.id);
     let tymd = create_ty(cx, ty, arg.ty);
     let filemd = create_file(cx, loc.filename);
@@ -703,7 +703,7 @@ fn update_source_pos(cx: @block_ctxt, s: codemap::span) {
     }
     let cm = bcx_ccx(cx).sess.codemap;
     let blockmd = create_block(cx);
-    let loc = codemap::lookup_char_pos(cm, s.lo);
+    let loc = codemap::lookup_pos(cm, s.lo_xxx);
     let scopedata = [lli32(loc.line as int),
                      lli32(loc.col as int),
                      blockmd.node,
@@ -762,8 +762,8 @@ fn create_function(fcx: @fn_ctxt) -> @metadata<subprogram_md> {
       option::none {}
     }
 
-    let loc = codemap::lookup_char_pos(cx.sess.codemap,
-                                       fcx.sp.lo);
+    let loc = codemap::lookup_pos(cx.sess.codemap,
+                                       fcx.sp.lo_xxx);
     let file_node = create_file(cx, loc.filename).node;
     let key = cx.item_symbols.contains_key(fcx.id) ? fcx.id : id;
     let mangled = cx.item_symbols.get(key);

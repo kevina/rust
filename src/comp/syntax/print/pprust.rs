@@ -165,7 +165,7 @@ fn bopen(s: ps) {
 }
 
 fn bclose_(s: ps, span: codemap::span, indented: uint) {
-    maybe_print_comment(s, span.hi);
+    maybe_print_comment(s, span.hi_xxx);
     break_offset_if_not_bol(s, 1u, -(indented as int));
     word(s.s, "}");
     end(s); // close the outer-box
@@ -227,13 +227,13 @@ fn commasep_cmnt<IN>(s: ps, b: breaks, elts: [IN], op: fn(ps, IN),
     let len = vec::len::<IN>(elts);
     let i = 0u;
     for elt: IN in elts {
-        maybe_print_comment(s, get_span(elt).hi);
+        maybe_print_comment(s, get_span(elt).hi_xxx);
         op(s, elt);
         i += 1u;
         if i < len {
             word(s.s, ",");
             maybe_print_trailing_comment(s, get_span(elt),
-                                         some(get_span(elts[i]).hi));
+                                         some(get_span(elts[i]).hi_xxx));
             space_if_not_bol(s);
         }
     }
@@ -262,7 +262,7 @@ fn print_native_mod(s: ps, nmod: ast::native_mod, attrs: [ast::attribute]) {
 }
 
 fn print_type(s: ps, &&ty: @ast::ty) {
-    maybe_print_comment(s, ty.span.lo);
+    maybe_print_comment(s, ty.span.lo_xxx);
     ibox(s, 0u);
     alt ty.node {
       ast::ty_nil { word(s.s, "()"); }
@@ -335,7 +335,7 @@ fn print_type(s: ps, &&ty: @ast::ty) {
 
 fn print_native_item(s: ps, item: @ast::native_item) {
     hardbreak_if_not_bol(s);
-    maybe_print_comment(s, item.span.lo);
+    maybe_print_comment(s, item.span.lo_xxx);
     print_outer_attributes(s, item.attrs);
     alt item.node {
       ast::native_item_ty {
@@ -359,7 +359,7 @@ fn print_native_item(s: ps, item: @ast::native_item) {
 
 fn print_item(s: ps, &&item: @ast::item) {
     hardbreak_if_not_bol(s);
-    maybe_print_comment(s, item.span.lo);
+    maybe_print_comment(s, item.span.lo_xxx);
     print_outer_attributes(s, item.attrs);
     let ann_node = node_item(s, item);
     s.ann.pre(ann_node);
@@ -432,7 +432,7 @@ fn print_item(s: ps, &&item: @ast::item) {
             bopen(s);
             for v: ast::variant in variants {
                 space_if_not_bol(s);
-                maybe_print_comment(s, v.span.lo);
+                maybe_print_comment(s, v.span.lo_xxx);
                 ibox(s, indent_unit);
                 word(s.s, v.node.name);
                 if vec::len(v.node.args) > 0u {
@@ -477,7 +477,7 @@ fn print_item(s: ps, &&item: @ast::item) {
         bopen(s);
         for meth in methods {
             hardbreak_if_not_bol(s);
-            maybe_print_comment(s, meth.span.lo);
+            maybe_print_comment(s, meth.span.lo_xxx);
             print_fn(s, meth.decl, meth.ident, meth.tps);
             word(s.s, " ");
             print_block(s, meth.body);
@@ -510,7 +510,7 @@ fn print_item(s: ps, &&item: @ast::item) {
 fn print_ty_method(s: ps, m: ast::ty_method) {
     hardbreak_if_not_bol(s);
     cbox(s, indent_unit);
-    maybe_print_comment(s, m.span.lo);
+    maybe_print_comment(s, m.span.lo_xxx);
     print_ty_fn(s, none, m.decl, some(m.ident), some(m.tps));
     word(s.s, ";");
     end(s);
@@ -544,7 +544,7 @@ fn print_inner_attributes(s: ps, attrs: [ast::attribute]) {
 
 fn print_attribute(s: ps, attr: ast::attribute) {
     hardbreak_if_not_bol(s);
-    maybe_print_comment(s, attr.span.lo);
+    maybe_print_comment(s, attr.span.lo_xxx);
     word(s.s, "#[");
     print_meta_item(s, @attr.node.value);
     word(s.s, "]");
@@ -552,7 +552,7 @@ fn print_attribute(s: ps, attr: ast::attribute) {
 
 
 fn print_stmt(s: ps, st: ast::stmt) {
-    maybe_print_comment(s, st.span.lo);
+    maybe_print_comment(s, st.span.lo_xxx);
     alt st.node {
       ast::stmt_decl(decl, _) {
         print_decl(s, decl);
@@ -595,7 +595,7 @@ fn print_possibly_embedded_block_(s: ps, blk: ast::blk, embedded: embed_type,
       ast::default_blk { }
     }
 
-    maybe_print_comment(s, blk.span.lo);
+    maybe_print_comment(s, blk.span.lo_xxx);
     let ann_node = node_block(s, blk);
     s.ann.pre(ann_node);
     alt embedded {
@@ -614,7 +614,7 @@ fn print_possibly_embedded_block_(s: ps, blk: ast::blk, embedded: embed_type,
       some(expr) {
         space_if_not_bol(s);
         print_expr(s, expr);
-        maybe_print_trailing_comment(s, expr.span, some(blk.span.hi));
+        maybe_print_trailing_comment(s, expr.span, some(blk.span.hi_xxx));
       }
       _ { }
     }
@@ -702,7 +702,7 @@ fn print_mac(s: ps, m: ast::mac) {
 }
 
 fn print_expr(s: ps, &&expr: @ast::expr) {
-    maybe_print_comment(s, expr.span.lo);
+    maybe_print_comment(s, expr.span.lo_xxx);
     ibox(s, indent_unit);
     let ann_node = node_expr(s, expr);
     s.ann.pre(ann_node);
@@ -1009,7 +1009,7 @@ fn print_local_decl(s: ps, loc: @ast::local) {
 }
 
 fn print_decl(s: ps, decl: @ast::decl) {
-    maybe_print_comment(s, decl.span.lo);
+    maybe_print_comment(s, decl.span.lo_xxx);
     alt decl.node {
       ast::decl_local(locs) {
         space_if_not_bol(s);
@@ -1050,7 +1050,7 @@ fn print_for_decl(s: ps, loc: @ast::local, coll: @ast::expr) {
 }
 
 fn print_path(s: ps, &&path: @ast::path, colons_before_params: bool) {
-    maybe_print_comment(s, path.span.lo);
+    maybe_print_comment(s, path.span.lo_xxx);
     if path.node.global { word(s.s, "::"); }
     let first = true;
     for id: ast::ident in path.node.idents {
@@ -1066,7 +1066,7 @@ fn print_path(s: ps, &&path: @ast::path, colons_before_params: bool) {
 }
 
 fn print_pat(s: ps, &&pat: @ast::pat) {
-    maybe_print_comment(s, pat.span.lo);
+    maybe_print_comment(s, pat.span.lo_xxx);
     let ann_node = node_pat(s, pat);
     s.ann.pre(ann_node);
     /* Pat isn't normalized, but the beauty of it
@@ -1174,7 +1174,7 @@ fn print_fn_args_and_ret(s: ps, decl: ast::fn_decl) {
     commasep(s, inconsistent, decl.inputs, print_arg);
     pclose(s);
     word(s.s, ast_fn_constrs_str(decl, decl.constraints));
-    maybe_print_comment(s, decl.output.span.lo);
+    maybe_print_comment(s, decl.output.span.lo_xxx);
     if decl.output.node != ast::ty_nil {
         space_if_not_bol(s);
         word_space(s, "->");
@@ -1197,7 +1197,7 @@ fn print_fn_block_args(s: ps, decl: ast::fn_decl) {
         word_space(s, "->");
         print_type(s, decl.output);
     }
-    maybe_print_comment(s, decl.output.span.lo);
+    maybe_print_comment(s, decl.output.span.lo_xxx);
 }
 
 fn print_arg_mode(s: ps, m: ast::mode) {
@@ -1258,7 +1258,7 @@ fn print_meta_item(s: ps, &&item: @ast::meta_item) {
 
 fn print_view_item(s: ps, item: @ast::view_item) {
     hardbreak_if_not_bol(s);
-    maybe_print_comment(s, item.span.lo);
+    maybe_print_comment(s, item.span.lo_xxx);
     alt item.node {
       ast::view_item_use(id, mta, _) {
         head(s, "use");
@@ -1391,7 +1391,7 @@ fn print_ty_fn(s: ps, opt_proto: option<ast::proto>,
     }
     commasep(s, inconsistent, decl.inputs, print_arg);
     pclose(s);
-    maybe_print_comment(s, decl.output.span.lo);
+    maybe_print_comment(s, decl.output.span.lo_xxx);
     if decl.output.node != ast::ty_nil {
         space_if_not_bol(s);
         ibox(s, indent_unit);
@@ -1411,11 +1411,11 @@ fn maybe_print_trailing_comment(s: ps, span: codemap::span,
     alt next_comment(s) {
       some(cmnt) {
         if cmnt.style != lexer::trailing { ret; }
-        let span_line = codemap::lookup_char_pos(cm, span.hi);
-        let comment_line = codemap::lookup_char_pos(cm, cmnt.pos);
-        let next = cmnt.pos + 1u;
+        let span_line = codemap::lookup_pos(cm, span.hi_xxx);
+        let comment_line = codemap::lookup_pos(cm, cmnt.pos_xxx);
+        let next = cmnt.pos_xxx + 1u;
         alt next_pos { none { } some(p) { next = p; } }
-        if span.hi < cmnt.pos && cmnt.pos < next &&
+        if span.hi_xxx < cmnt.pos_xxx && cmnt.pos_xxx < next &&
                span_line.line == comment_line.line {
             print_comment(s, cmnt);
             s.cur_cmnt += 1u;
@@ -1444,8 +1444,8 @@ fn in_cbox(s: ps) -> bool {
 }
 
 fn print_literal(s: ps, &&lit: @ast::lit) {
-    maybe_print_comment(s, lit.span.lo);
-    alt next_lit(s, lit.span.lo) {
+    maybe_print_comment(s, lit.span.lo_xxx);
+    alt next_lit(s, lit.span.lo_xxx) {
       some(lt) {
         word(s.s, lt.lit);
         ret;
@@ -1480,9 +1480,9 @@ fn next_lit(s: ps, pos: uint) -> option::t<lexer::lit> {
       some(lits) {
         while s.cur_lit < vec::len(lits) {
             let lt = lits[s.cur_lit];
-            if lt.pos > pos { ret none; }
+            if lt.pos_xxx > pos { ret none; }
             s.cur_lit += 1u;
-            if lt.pos == pos { ret some(lt); }
+            if lt.pos_xxx == pos { ret some(lt); }
         }
         ret none;
       }
@@ -1494,7 +1494,7 @@ fn maybe_print_comment(s: ps, pos: uint) {
     while true {
         alt next_comment(s) {
           some(cmnt) {
-            if cmnt.pos < pos {
+            if cmnt.pos_xxx < pos {
                 print_comment(s, cmnt);
                 s.cur_cmnt += 1u;
             } else { break; }

@@ -3807,7 +3807,7 @@ fn trans_fail_value(bcx: @block_ctxt, sp_opt: option::t<span>,
     alt sp_opt {
       some(sp) {
         let sess = bcx_ccx(bcx).sess;
-        let loc = codemap::lookup_char_pos(sess.parse_sess.cm, sp.lo);
+        let loc = codemap::lookup_pos(sess.parse_sess.cm, sp.lo_xxx);
         V_filename = C_cstr(bcx_ccx(bcx), loc.filename);
         V_line = loc.line as int;
       }

@@ -114,7 +114,7 @@ fn inject_libcore_reference(sess: session,
 
     fn spanned<T: copy>(x: T) -> @ast::spanned<T> {
         ret @{node: x,
-              span: {lo: 0u, hi: 0u,
+              span: {lo_xxx: 0u, hi_xxx: 0u,
                      expanded_from: codemap::os_none}};
     }
 

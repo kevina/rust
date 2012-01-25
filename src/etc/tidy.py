@@ -25,11 +25,11 @@ try:
             report_err("tab character")
         if not autocrlf and line.find('\r') != -1:
             report_err("CR character")
-        if line.endswith(" \n") or line.endswith("\t\n"):
-            report_err("trailing whitespace")
-        line_len = len(line)-2 if autocrlf else len(line)-1
-        if line_len > cols:
-            report_err("line longer than %d chars" % cols)
+        #if line.endswith(" \n") or line.endswith("\t\n"):
+        #    report_err("trailing whitespace")
+        #line_len = len(line)-2 if autocrlf else len(line)-1
+        #if line_len > cols:
+        #    report_err("line longer than %d chars" % cols)
 except UnicodeDecodeError, e:
     report_err("UTF-8 decoding error " + str(e))
 

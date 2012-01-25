@@ -56,7 +56,7 @@ fn mk_ctxt(sess: session) -> ext_ctxt {
         fn backtrace() -> codemap::opt_span { self.backtrace }
         fn bt_push(sp: span) {
             self.backtrace = codemap::os_some(
-                @{lo: sp.lo, hi: sp.hi, expanded_from: self.backtrace});
+                @{lo_xxx: sp.lo_xxx, hi_xxx: sp.hi_xxx, expanded_from: self.backtrace});
         }
         fn bt_pop() {
             alt self.backtrace {

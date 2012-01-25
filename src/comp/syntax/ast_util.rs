@@ -6,12 +6,12 @@ fn respan<T: copy>(sp: span, t: T) -> spanned<T> {
 }
 
 /* assuming that we're not in macro expansion */
-fn mk_sp(lo: uint, hi: uint) -> span {
-    ret {lo: lo, hi: hi, expanded_from: codemap::os_none};
+fn mk_sp_xxx(lo: uint, hi: uint) -> span {
+    ret {lo_xxx: lo, hi_xxx: hi, expanded_from: codemap::os_none};
 }
 
 // make this a const, once the compiler supports it
-fn dummy_sp() -> span { ret mk_sp(0u, 0u); }
+fn dummy_sp() -> span { ret mk_sp_xxx(0u, 0u); }
 
 fn path_name(p: @path) -> str { path_name_i(p.node.idents) }
 
@@ -179,7 +179,7 @@ fn is_constraint_arg(e: @expr) -> bool {
 fn eq_ty(&&a: @ty, &&b: @ty) -> bool { ret box::ptr_eq(a, b); }
 
 fn hash_ty(&&t: @ty) -> uint {
-    let res = (t.span.lo << 16u) + t.span.hi;
+    let res = (t.span.lo_xxx << 16u) + t.span.hi_xxx;
     ret res;
 }
 

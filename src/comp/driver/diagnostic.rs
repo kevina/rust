@@ -198,7 +198,7 @@ fn highlight_lines(cm: codemap::codemap, sp: span,
 
     // If there's one line at fault we can easily point to the problem
     if vec::len(lines.lines) == 1u {
-        let lo = codemap::lookup_char_pos(cm, sp.lo);
+        let lo = codemap::lookup_pos(cm, sp.lo_xxx);
         let digits = 0u;
         let num = (lines.lines[0] + 1u) / 10u;
 
@@ -211,7 +211,7 @@ fn highlight_lines(cm: codemap::codemap, sp: span,
         while left > 0u { str::push_char(s, ' '); left -= 1u; }
 
         s += "^";
-        let hi = codemap::lookup_char_pos(cm, sp.hi);
+        let hi = codemap::lookup_pos(cm, sp.hi_xxx);
         if hi.col != lo.col {
             // the ^ already takes up one space
             let width = hi.col - lo.col - 1u;

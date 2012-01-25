@@ -16,7 +16,7 @@ type filemap =
 
 type codemap = @{mutable files: [filemap]};
 
-type loc = {filename: filename, line: uint, col: uint};
+type loc = {filename: filename, line: uint, col: uint, col_byte: uint};
 
 fn new_codemap() -> codemap { ret @{mutable files: []}; }
 
@@ -32,37 +32,31 @@ fn next_line(file: filemap, chpos: uint, byte_pos: uint) {
     file.lines += [{ch: chpos, byte: byte_pos}];
 }
 
-type lookup_fn = fn@(file_pos) -> uint;
-
-fn lookup_pos(map: codemap, pos: uint, lookup: lookup_fn) -> loc {
+fn lookup_pos(map: codemap, pos: uint) -> loc {
     let len = vec::len(map.files);
     let a = 0u;
     let b = len;
     while b - a > 1u {
         let m = (a + b) / 2u;
-        if lookup(map.files[m].start_pos) > pos { b = m; } else { a = m; }
+        if map.files[m].start_pos.byte > pos { b = m; } else { a = m; }
     }
     if (a >= len) {
-        ret { filename: "-", line: 0u, col: 0u };
+        ret { filename: "-", line: 0u, col: 0u, col_byte: 0u};
     }
     let f = map.files[a];
     a = 0u;
     b = vec::len(f.lines);
     while b - a > 1u {
         let m = (a + b) / 2u;
-        if lookup(f.lines[m]) > pos { b = m; } else { a = m; }
+        if f.lines[m].byte > pos { b = m; } else { a = m; }
     }
-    ret {filename: f.name, line: a + 1u, col: pos - lookup(f.lines[a])};
-}
-
-fn lookup_char_pos(map: codemap, pos: uint) -> loc {
-    fn lookup(pos: file_pos) -> uint { ret pos.ch; }
-    ret lookup_pos(map, pos, lookup);
-}
-
-fn lookup_byte_pos(map: codemap, pos: uint) -> loc {
-    fn lookup(pos: file_pos) -> uint { ret pos.byte; }
-    ret lookup_pos(map, pos, lookup);
+    let byte_begin = f.lines[a].byte;
+    let col_byte = pos - byte_begin;
+    let len = str::byte_len(*f.src);
+    let col = byte_begin > len || pos < byte_begin || pos > len
+        ? uint::max_value
+        : str::char_len_range(*f.src, byte_begin, col_byte);
+    ret {filename: f.name, line: a + 1u, col: col, col_byte: col_byte};
 }
 
 enum opt_span {
@@ -71,15 +65,15 @@ enum opt_span {
     os_none,
     os_some(@span),
 }
-type span = {lo: uint, hi: uint, expanded_from: opt_span};
+type span = {lo_xxx: uint, hi_xxx: uint, expanded_from: opt_span};
 
 fn span_to_str(sp: span, cm: codemap) -> str {
     let cur = sp;
     let res = "";
     let prev_file = none;
     while true {
-        let lo = lookup_char_pos(cm, cur.lo);
-        let hi = lookup_char_pos(cm, cur.hi);
+        let lo = lookup_pos(cm, cur.lo_xxx);
+        let hi = lookup_pos(cm, cur.hi_xxx);
         res +=
             #fmt["%s:%u:%u: %u:%u",
                  if some(lo.filename) == prev_file {
@@ -101,8 +95,8 @@ fn span_to_str(sp: span, cm: codemap) -> str {
 type file_lines = {name: str, lines: [uint]};
 
 fn span_to_lines(sp: span, cm: codemap::codemap) -> @file_lines {
-    let lo = lookup_char_pos(cm, sp.lo);
-    let hi = lookup_char_pos(cm, sp.hi);
+    let lo = lookup_pos(cm, sp.lo_xxx);
+    let hi = lookup_pos(cm, sp.hi_xxx);
     let lines = [];
     uint::range(lo.line - 1u, hi.line as uint) {|i| lines += [i]; };
     ret @{name: lo.filename, lines: lines};

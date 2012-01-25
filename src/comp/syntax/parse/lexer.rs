@@ -13,6 +13,7 @@ type reader = @{
     diagnostic: diagnostic::handler,
     src: @str,
     len: uint,
+    start_pos: uint,
     mutable col: uint,
     mutable pos: uint,
     mutable curr: char,
@@ -40,7 +41,7 @@ impl reader for reader {
             self.chpos += 1u;
             if self.curr == '\n' {
                 codemap::next_line(self.filemap, self.chpos, self.pos +
-                                   self.filemap.start_pos.byte);
+                                   self.start_pos);
                 self.col = 0u;
             }
             let next = str::char_range_at(*self.src, self.pos);
@@ -50,7 +51,8 @@ impl reader for reader {
     }
     fn fatal(m: str) -> ! {
         self.diagnostic.span_fatal(
-            ast_util::mk_sp(self.chpos, self.chpos),
+            ast_util::mk_sp_xxx(self.start_pos + self.pos, 
+                                self.start_pos + self.pos),
             m)
     }
 }
@@ -61,6 +63,7 @@ fn new_reader(cm: codemap::codemap,
               itr: @interner::interner<str>) -> reader {
     let r = @{cm: cm, diagnostic: diagnostic,
               src: filemap.src, len: str::byte_len(*filemap.src),
+              start_pos: filemap.start_pos.byte,
               mutable col: 0u, mutable pos: 0u, mutable curr: -1 as char,
               mutable chpos: filemap.start_pos.ch, mutable strs: [],
               filemap: filemap, interner: itr};
@@ -289,7 +292,7 @@ fn scan_numeric_escape(rdr: reader, n_hex_digits: uint) -> char {
 fn next_token(rdr: reader) -> {tok: token::token, chpos: uint, bpos: uint} {
     consume_whitespace_and_comments(rdr);
     let start_chpos = rdr.chpos;
-    let start_bpos = rdr.pos;
+    let start_bpos = rdr.start_pos + rdr.pos;
     let tok = if rdr.is_eof() { token::EOF } else { next_token_inner(rdr) };
     ret {tok: tok, chpos: start_chpos, bpos: start_bpos};
 }
@@ -517,7 +520,7 @@ enum cmnt_style {
     blank_line, // Just a manual blank line "\n\n", for layout
 }
 
-type cmnt = {style: cmnt_style, lines: [str], pos: uint};
+type cmnt = {style: cmnt_style, lines: [str], pos_xxx: uint};
 
 fn read_to_eol(rdr: reader) -> str {
     let val = "";
@@ -548,7 +551,7 @@ fn consume_non_eol_whitespace(rdr: reader) {
 fn push_blank_line_comment(rdr: reader, &comments: [cmnt]) {
     #debug(">>> blank-line comment");
     let v: [str] = [];
-    comments += [{style: blank_line, lines: v, pos: rdr.chpos}];
+    comments += [{style: blank_line, lines: v, pos_xxx: rdr.start_pos + rdr.pos}];
 }
 
 fn consume_whitespace_counting_blank_lines(rdr: reader, &comments: [cmnt]) {
@@ -562,7 +565,7 @@ fn consume_whitespace_counting_blank_lines(rdr: reader, &comments: [cmnt]) {
 
 fn read_line_comments(rdr: reader, code_to_the_left: bool) -> cmnt {
     #debug(">>> line comments");
-    let p = rdr.chpos;
+    let p = rdr.start_pos + rdr.pos;
     let lines: [str] = [];
     while rdr.curr == '/' && rdr.next() == '/' {
         let line = read_one_line_comment(rdr);
@@ -573,7 +576,7 @@ fn read_line_comments(rdr: reader, code_to_the_left: bool) -> cmnt {
     #debug("<<< line comments");
     ret {style: if code_to_the_left { trailing } else { isolated },
          lines: lines,
-         pos: p};
+         pos_xxx: p};
 }
 
 fn all_whitespace(s: str, begin: uint, end: uint) -> bool {
@@ -595,7 +598,7 @@ fn trim_whitespace_prefix_and_push_line(&lines: [str], s: str, col: uint) {
 
 fn read_block_comment(rdr: reader, code_to_the_left: bool) -> cmnt {
     #debug(">>> block comment");
-    let p = rdr.chpos;
+    let p = rdr.start_pos + rdr.pos;
     let lines: [str] = [];
     let col: uint = rdr.col;
     rdr.bump();
@@ -635,7 +638,7 @@ fn read_block_comment(rdr: reader, code_to_the_left: bool) -> cmnt {
         style = mixed;
     }
     #debug("<<< block comment");
-    ret {style: style, lines: lines, pos: p};
+    ret {style: style, lines: lines, pos_xxx: p};
 }
 
 fn peeking_at_comment(rdr: reader) -> bool {
@@ -664,7 +667,7 @@ fn is_lit(t: token::token) -> bool {
         }
 }
 
-type lit = {lit: str, pos: uint};
+type lit = {lit: str, pos_xxx: uint};
 
 fn gather_comments_and_literals(cm: codemap::codemap,
                                 diagnostic: diagnostic::handler,
@@ -694,7 +697,7 @@ fn gather_comments_and_literals(cm: codemap::codemap,
         }
         let tok = next_token(rdr);
         if is_lit(tok.tok) {
-            literals += [{lit: rdr.get_str_from(tok.bpos), pos: tok.chpos}];
+            literals += [{lit: rdr.get_str_from(tok.bpos), pos_xxx: tok.bpos}];
         }
         log(debug, "tok: " + token::to_str(rdr, tok.tok));
         first_read = false;

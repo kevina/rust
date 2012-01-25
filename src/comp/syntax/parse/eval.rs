@@ -113,7 +113,7 @@ fn eval_crate_directive(cx: ctx, cdir: @ast::crate_directive, prefix: str,
         let m0 = parse_mod_items(p0, token::EOF, first_item_outer_attrs);
 
         let i =
-            syntax::parse::parser::mk_item(p0, cdir.span.lo, cdir.span.hi, id,
+            syntax::parse::parser::mk_item(p0, cdir.span.lo_xxx, cdir.span.hi_xxx, id,
                                            ast::item_mod(m0), mod_attrs);
         // Thread defids, chpos and byte_pos through the parsers
         cx.sess.chpos = p0.reader.chpos;
